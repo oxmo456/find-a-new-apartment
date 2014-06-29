@@ -13,20 +13,17 @@ object FindANewApartment {
 
   }
 
-
 }
 
-class FindANewApartment {
+class FindANewApartment(config: Config) {
 
   import FindANewApartment._
 
   val system = ActorSystem(getClass.getName.replace('.', '-'))
 
-  val engine = system.actorOf(Props[FindANewApartmentEngine])
-
+  val engine = system.actorOf(FindANewApartmentEngine.props(config))
 
   def handleUserInput: Unit = {
-
     Console.print("? ")
     Console.readLine() match {
       case Command.Start => {
@@ -43,11 +40,8 @@ class FindANewApartment {
         handleUserInput
       }
     }
-
   }
 
-
   handleUserInput
-
 
 }

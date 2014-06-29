@@ -4,29 +4,34 @@ import akka.actor.{ActorRef, PoisonPill, Props, Actor}
 import eu.seria.utils._
 
 
-case class ApartmentsExtracted()
+case class ApartmentsExtracted(apartments: List[Apartment])
 
 case class ExtractApartments()
 
-class ApartmentsExtractor extends Actor {
+object ApartmentsExtractor {
+
+  def props(config: Config, manager: ActorRef): Props = Props(new ApartmentsExtractor(config, manager))
+
+}
+
+class ApartmentsExtractor(config: Config, manager: ActorRef) extends Actor {
 
   import context._
 
+  def apartmentsLinksExtractor: ActorRef = system.actorOf(ApartmentsLinksExtractor.props(config))
 
-  def apartmentsLinksExtractor: ActorRef = system.actorOf(Props[ApartmentsLinksExtractor])
+  def apartmentExtractor: ActorRef = system.actorOf(ApartmentExtractor.props(config))
 
-  def apartmentExtractor: ActorRef = system.actorOf(Props[ApartmentExtractor])
-
-  def handleExtractedApartments(apartmentsCount: Counter): Receive = if (apartmentsCount > 0) {
-    {
-      case ApartmentExtracted() => {
-
-        become(handleExtractedApartments(apartmentsCount.decrease))
+  def handleExtractedApartments(remainingApartments: Counter, extractedApartments: List[Apartment]): Receive =
+    if (remainingApartments > 0) {
+      {
+        case ApartmentExtracted(apartment) =>
+          become(handleExtractedApartments(remainingApartments.decrease, apartment :: extractedApartments))
       }
+    } else {
+      manager ! ApartmentsExtracted(extractedApartments)
+      noop
     }
-  } else {
-    noop
-  }
 
   def handleExtractedApartmentsLinks: Receive = {
     case ApartmentsLinksExtracted(apartmentsLinks) => {
@@ -34,12 +39,13 @@ class ApartmentsExtractor extends Actor {
         apartmentExtractor ! ExtractApartment(apartmentLink)
       })
       sender ! PoisonPill
-      become(handleExtractedApartments(Counter(apartmentsLinks.size)))
+      become(handleExtractedApartments(Counter(apartmentsLinks.size), Nil))
     }
   }
 
   override def receive: Receive = {
     case ExtractApartments() => {
+
       apartmentsLinksExtractor ! ExtractApartmentsLinks()
       become(handleExtractedApartmentsLinks)
     }

@@ -1,7 +1,6 @@
 package eu.seria.fana
 
-import akka.actor.{Props, Actor}
-import scala.concurrent.duration._
+import akka.actor.{PoisonPill, ActorRef, Props, Actor}
 
 case class Start()
 
@@ -9,19 +8,28 @@ case class Stop()
 
 case class Update()
 
-private class FindANewApartmentEngine extends Actor {
+object FindANewApartmentEngine {
+
+  def props(config: Config): Props = Props(new FindANewApartmentEngine(config))
+
+}
+
+private class FindANewApartmentEngine(config: Config) extends Actor {
 
   import context._
 
-  def started: Receive = {
-    case ApartmentsExtracted() => {
+  def apartmentsExtractor: ActorRef = system.actorOf(ApartmentsExtractor.props(config, self))
 
+  def started: Receive = {
+    case ApartmentsExtracted(apartments) => {
+
+      println(s"YES ! ${apartments.length}")
+
+      sender ! PoisonPill
     }
     case Update() => {
-
-      system.actorOf(Props[ApartmentsExtractor]) ! ExtractApartments()
-
-      system.scheduler.scheduleOnce(5 seconds, self, Update())
+      apartmentsExtractor ! ExtractApartments()
+      system.scheduler.scheduleOnce(config.updateInterval, self, Update())
     }
     case Stop() => {
       become(stopped)
