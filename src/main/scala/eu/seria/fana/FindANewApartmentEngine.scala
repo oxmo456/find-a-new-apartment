@@ -14,12 +14,12 @@ private class FindANewApartmentEngine extends Actor {
   import context._
 
   def started: Receive = {
-    case ApartmentsFound() => {
+    case ApartmentsExtracted() => {
 
     }
     case Update() => {
 
-      system.actorOf(Props[ApartmentsFinder]) ! FindApartments()
+      system.actorOf(Props[ApartmentsExtractor]) ! ExtractApartments()
 
       system.scheduler.scheduleOnce(5 seconds, self, Update())
     }
