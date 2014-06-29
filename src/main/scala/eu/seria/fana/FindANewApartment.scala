@@ -2,36 +2,52 @@ package eu.seria.fana
 
 import akka.actor.{Props, ActorSystem}
 
+object FindANewApartment {
+
+  object Command {
+
+    val Start = "start"
+    val Stop = "stop"
+    val Exit = "exit"
+
+
+  }
+
+
+}
+
 class FindANewApartment {
+
+  import FindANewApartment._
 
   val system = ActorSystem(getClass.getName.replace('.', '-'))
 
-  val engine = system.actorOf(Props[FindANewApartmentEngine], "fana-engine")
+  val engine = system.actorOf(Props[FindANewApartmentEngine])
 
 
-  def userInput: Unit = {
+  def handleUserInput: Unit = {
 
-    Console.print("> ")
+    Console.print("? ")
     Console.readLine() match {
-      case "start" => {
+      case Command.Start => {
         engine ! Start()
-        userInput
+        handleUserInput
       }
-      case "stop" => {
+      case Command.Stop => {
         engine ! Stop()
-        userInput
+        handleUserInput
       }
-      case "exit" => system.shutdown()
+      case Command.Exit => system.shutdown()
       case command => {
         Console.println(s"unknown command $command")
-        userInput
+        handleUserInput
       }
     }
 
   }
 
 
-  userInput
+  handleUserInput
 
 
 }
