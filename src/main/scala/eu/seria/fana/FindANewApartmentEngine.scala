@@ -20,11 +20,14 @@ private class FindANewApartmentEngine(config: Config) extends Actor {
 
   def apartmentsExtractor: ActorRef = system.actorOf(ApartmentsExtractor.props(config, self))
 
+  lazy val latestApartmentsFilter: ActorRef = system.actorOf(LatestApartmentsFilter.props)
+
   def started: Receive = {
+    case LatestApartmentsFiltered(apartments) => {
+
+    }
     case ApartmentsExtracted(apartments) => {
-
-      println(s"YES ! ${apartments.length}")
-
+      latestApartmentsFilter ! FilterLatestApartments(apartments)
       sender ! PoisonPill
     }
     case Update() => {
