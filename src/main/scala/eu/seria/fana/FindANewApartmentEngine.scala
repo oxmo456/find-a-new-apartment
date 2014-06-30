@@ -21,14 +21,14 @@ private class FindANewApartmentEngine(config: Config) extends Actor {
 
   def apartmentsExtractor: ActorRef = system.actorOf(ApartmentsExtractor.props(config, self))
 
-  lazy val latestApartmentsFilter: ActorRef = system.actorOf(LatestApartmentsFilter.props(jedisPool))
+  lazy val latestApartmentsFilter: ActorRef =
+    system.actorOf(LatestApartmentsFilter.props(jedisPool, config.redis.apartmentsSetKey))
 
-
-  lazy val jedisPool = new JedisPool(new JedisPoolConfig(), config.jedis.host, config.jedis.port)
+  lazy val jedisPool = new JedisPool(new JedisPoolConfig(), config.redis.host, config.redis.port)
 
   def started: Receive = {
     case LatestApartments(apartments) => {
-      println(apartments)
+      println(apartments.length)
     }
     case ApartmentsExtracted(apartments) => {
       latestApartmentsFilter ! FilterLatestApartments(apartments)

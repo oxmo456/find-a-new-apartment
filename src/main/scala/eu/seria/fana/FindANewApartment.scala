@@ -1,6 +1,6 @@
 package eu.seria.fana
 
-import akka.actor.{Props, ActorSystem}
+import akka.actor.ActorSystem
 
 object FindANewApartment {
 

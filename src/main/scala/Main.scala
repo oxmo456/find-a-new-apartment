@@ -8,7 +8,7 @@ object Main {
     new FindANewApartment(Config("http://www.kijiji.ca",
       "/b-appartement-condo/ville-de-montreal/villeray/k0c37l1700281?origin=ps",
       10 seconds,
-      RedisConfig("10.0.1.6", 6379)
+      RedisConfig("10.0.1.6", 6379, "apartments")
     ))
 
   }
