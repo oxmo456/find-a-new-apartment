@@ -1,4 +1,4 @@
-import eu.seria.fana.{Config, FindANewApartment}
+import eu.seria.fana.{RedisConfig, Config, FindANewApartment}
 import scala.concurrent.duration._
 
 object Main {
@@ -7,7 +7,9 @@ object Main {
 
     new FindANewApartment(Config("http://www.kijiji.ca",
       "/b-appartement-condo/ville-de-montreal/villeray/k0c37l1700281?origin=ps",
-      10 seconds))
+      10 seconds,
+      RedisConfig("10.0.1.6", 6379)
+    ))
 
   }
 

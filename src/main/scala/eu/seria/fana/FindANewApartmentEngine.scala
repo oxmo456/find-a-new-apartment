@@ -1,6 +1,7 @@
 package eu.seria.fana
 
 import akka.actor.{PoisonPill, ActorRef, Props, Actor}
+import redis.clients.jedis.{JedisPoolConfig, JedisPool, Jedis}
 
 case class Start()
 
@@ -20,11 +21,14 @@ private class FindANewApartmentEngine(config: Config) extends Actor {
 
   def apartmentsExtractor: ActorRef = system.actorOf(ApartmentsExtractor.props(config, self))
 
-  lazy val latestApartmentsFilter: ActorRef = system.actorOf(LatestApartmentsFilter.props)
+  lazy val latestApartmentsFilter: ActorRef = system.actorOf(LatestApartmentsFilter.props(jedisPool))
+
+
+  lazy val jedisPool = new JedisPool(new JedisPoolConfig(), config.jedis.host, config.jedis.port)
 
   def started: Receive = {
-    case LatestApartmentsFiltered(apartments) => {
-
+    case LatestApartments(apartments) => {
+      println(apartments)
     }
     case ApartmentsExtracted(apartments) => {
       latestApartmentsFilter ! FilterLatestApartments(apartments)
@@ -47,4 +51,9 @@ private class FindANewApartmentEngine(config: Config) extends Actor {
   }
 
   override def receive: Receive = stopped
+
+  override def postStop(): Unit = {
+    jedisPool.destroy()
+    super.postStop()
+  }
 }
