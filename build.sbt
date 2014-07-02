@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   "net.databinder" %% "unfiltered-netty-server" % "0.8.0",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
   "org.clapper" %% "avsl" % "1.0.1",
-  "net.databinder" %% "unfiltered-specs2" % "0.8.0" % "test"
+  "com.typesafe" % "config" % "1.2.1"
 )
 
 resolvers ++= Seq(
