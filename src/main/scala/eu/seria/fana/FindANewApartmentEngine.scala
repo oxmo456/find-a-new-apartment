@@ -9,6 +9,8 @@ case class Stop()
 
 case class Update()
 
+case class Status()
+
 object FindANewApartmentEngine {
 
   def props(config: Config): Props = Props(new FindANewApartmentEngine(config))
@@ -27,6 +29,7 @@ private class FindANewApartmentEngine(config: Config) extends Actor {
   lazy val jedisPool = new JedisPool(new JedisPoolConfig(), config.redis.host, config.redis.port)
 
   def started: Receive = {
+    case Status() => sender ! "started"
     case LatestApartments(apartments) => {
       println(apartments.length)
     }
@@ -39,11 +42,13 @@ private class FindANewApartmentEngine(config: Config) extends Actor {
       system.scheduler.scheduleOnce(config.updateInterval, self, Update())
     }
     case Stop() => {
+
       become(stopped)
     }
   }
 
   def stopped: Receive = {
+    case Status() => sender ! "stopped"
     case Start() => {
       self ! Update()
       become(started)

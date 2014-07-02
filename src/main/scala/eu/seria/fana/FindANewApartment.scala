@@ -1,47 +1,27 @@
 package eu.seria.fana
 
 import akka.actor.ActorSystem
-
-object FindANewApartment {
-
-  object Command {
-
-    val Start = "start"
-    val Stop = "stop"
-    val Exit = "exit"
-
-
-  }
-
-}
+import scala.concurrent.Future
+import akka.pattern.ask
+import akka.util.Timeout
+import scala.concurrent.duration._
 
 class FindANewApartment(config: Config) {
 
-  import FindANewApartment._
+  implicit val timeout = Timeout(5 seconds)
 
   val system = ActorSystem(getClass.getName.replace('.', '-'))
 
   val engine = system.actorOf(FindANewApartmentEngine.props(config))
 
-  def handleUserInput: Unit = {
-    Console.print("? ")
-    Console.readLine() match {
-      case Command.Start => {
-        engine ! Start()
-        handleUserInput
-      }
-      case Command.Stop => {
-        engine ! Stop()
-        handleUserInput
-      }
-      case Command.Exit => system.shutdown()
-      case command => {
-        Console.println(s"unknown command $command")
-        handleUserInput
-      }
-    }
-  }
+  def stop(): Unit = engine ! Stop()
 
-  handleUserInput
+  def start(): Unit = engine ! Start()
+
+  def kill(): Unit = system.shutdown()
+
+  def status(): Future[Any] = {
+    engine ? Status()
+  }
 
 }

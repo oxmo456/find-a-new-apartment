@@ -15,9 +15,11 @@ class FindANewApartmentServer extends future.Plan with ServerErrorResponse {
 
   unfiltered.netty.Http(8080)
     .handler(this)
-    .run { s =>
+    .beforeStop {
+    findANewApartment.kill()
+  }.run(s =>
     println("starting unfiltered app at localhost on port %s".format(s.port))
-  }
+    )
 
 
   lazy val findANewApartment = new FindANewApartment(Config("http://www.kijiji.ca",
@@ -29,22 +31,19 @@ class FindANewApartmentServer extends future.Plan with ServerErrorResponse {
   override def intent: Intent = {
 
     case GET(Path("/")) => {
-      logger.info("/")
-      Future(ResponseString("ok"))
+      Future(ResponseString("Yo!"))
     }
     case GET(Path("/server/start")) => {
-      logger.info("/server/start")
-      Future(ResponseString("ok"))
+      findANewApartment.start()
+      Future(ResponseString("start"))
     }
     case GET(Path("/server/stop")) => {
-      logger.info("/server/stop")
-      Future(ResponseString("ok"))
+      findANewApartment.stop()
+      Future(ResponseString("stop"))
     }
     case GET(Path("/server/status")) => {
-      logger.info("/server/status")
-      Future(ResponseString("ok"))
+      findANewApartment.status().map(res => ResponseString(res.toString))
     }
-
 
   }
 
