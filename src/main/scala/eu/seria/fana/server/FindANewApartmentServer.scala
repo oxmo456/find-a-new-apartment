@@ -7,7 +7,7 @@ import unfiltered.netty.future.Plan.Intent
 import unfiltered.request.{Path, GET}
 import unfiltered.response.ResponseString
 import eu.seria.fana.{ FanaConfig, FindANewApartment}
-import eu.seria.utils.Application._
+import eu.seria.utils.ApplicationMode._
 import com.typesafe.config.ConfigFactory
 
 @io.netty.channel.ChannelHandler.Sharable

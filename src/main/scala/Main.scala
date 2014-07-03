@@ -1,7 +1,7 @@
 import com.typesafe.config.ConfigFactory
 import eu.seria.fana.server.FindANewApartmentServer
-import eu.seria.utils.Application
-import eu.seria.utils.Application._
+import eu.seria.utils.ApplicationMode
+import eu.seria.utils.ApplicationMode._
 import scala.util.Try
 
 object Main {
@@ -9,7 +9,7 @@ object Main {
   def main(arguments: Array[String]) {
 
 
-    new FindANewApartmentServer(Try(Application.withName(arguments.head)).getOrElse(DEV))
+    new FindANewApartmentServer(Try(ApplicationMode.withName(arguments.head)).getOrElse(DEV))
 
   }
 
