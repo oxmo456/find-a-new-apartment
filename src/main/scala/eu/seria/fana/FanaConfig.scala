@@ -22,4 +22,13 @@ case class FanaConfig(conf: Config) {
 
   }
 
+  object twitter {
+
+    val consumerKey = conf.getString("twitter.consumerKey")
+    val consumerSecret = conf.getString("twitter.consumerSecret")
+    val accessToken = conf.getString("twitter.accessToken")
+    val accessTokenSecret = conf.getString("twitter.accessTokenSecret")
+
+  }
+
 }

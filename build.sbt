@@ -11,7 +11,8 @@ libraryDependencies ++= Seq(
   "net.databinder" %% "unfiltered-netty-server" % "0.8.0",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
   "com.typesafe" % "config" % "1.2.1",
-  "com.typesafe.play" %% "play-json" % "2.2.1"
+  "com.typesafe.play" %% "play-json" % "2.2.1",
+  "org.twitter4j" % "twitter4j-core" % "4.0.2"
 )
 
 resolvers ++= Seq(

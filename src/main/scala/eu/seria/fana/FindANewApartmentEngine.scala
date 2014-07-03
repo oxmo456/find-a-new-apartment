@@ -21,18 +21,20 @@ private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
 
   import context._
 
-  def apartmentsExtractor: ActorRef = system.actorOf(ApartmentsExtractor.props(config, self))
+  def apartmentsExtractor = system.actorOf(ApartmentsExtractor.props(config, self))
 
-  def apartmentsStorage: ActorRef = system.actorOf(ApartmentsStorage.props(jedisPool))
+  lazy val apartmentsStorage = system.actorOf(ApartmentsStorage.props(jedisPool))
 
-  lazy val latestApartmentsFilter: ActorRef =
+  lazy val newApartmentsNotifier = system.actorOf(NewApartmentsNotifier.props(config))
+
+  lazy val latestApartmentsFilter =
     system.actorOf(LatestApartmentsFilter.props(jedisPool, config.redis.apartmentsSetKey))
 
   lazy val jedisPool = new JedisPool(new JedisPoolConfig(), config.redis.host, config.redis.port)
 
   def started: Receive = {
     case Status() => sender ! "started"
-    case ApartmentsStored(apartments) => sender ! PoisonPill
+    case ApartmentsStored(apartments) => newApartmentsNotifier ! SendNewApartmentsNotification(apartments)
     case LatestApartments(apartments) => apartmentsStorage ! StoreApartments(apartments)
     case ApartmentsExtracted(apartments) => {
       latestApartmentsFilter ! FilterLatestApartments(apartments)
