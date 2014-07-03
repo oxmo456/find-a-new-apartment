@@ -46,7 +46,7 @@ class ApartmentExtractor(config: FanaConfig) extends Actor {
 
   override def receive: Receive = {
     case ExtractApartment(apartmentLink) => {
-      implicit val htmlDocument = Jsoup.connect(apartmentLink).get()
+      implicit val htmlDocument = Jsoup.parse(scala.io.Source.fromURL(apartmentLink).mkString)
       sender ! ApartmentExtracted(Apartment(
         apartmentLink,
         description,

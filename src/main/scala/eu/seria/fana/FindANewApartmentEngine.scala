@@ -23,6 +23,8 @@ private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
 
   def apartmentsExtractor: ActorRef = system.actorOf(ApartmentsExtractor.props(config, self))
 
+  def apartmentsStorage: ActorRef = system.actorOf(ApartmentsStorage.props(jedisPool))
+
   lazy val latestApartmentsFilter: ActorRef =
     system.actorOf(LatestApartmentsFilter.props(jedisPool, config.redis.apartmentsSetKey))
 
@@ -30,9 +32,8 @@ private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
 
   def started: Receive = {
     case Status() => sender ! "started"
-    case LatestApartments(apartments) => {
-      println(apartments.length)
-    }
+    case ApartmentsStored(apartments) => sender ! PoisonPill
+    case LatestApartments(apartments) => apartmentsStorage ! StoreApartments(apartments)
     case ApartmentsExtracted(apartments) => {
       latestApartmentsFilter ! FilterLatestApartments(apartments)
       sender ! PoisonPill
@@ -41,10 +42,7 @@ private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
       apartmentsExtractor ! ExtractApartments()
       system.scheduler.scheduleOnce(config.updateInterval, self, Update())
     }
-    case Stop() => {
-
-      become(stopped)
-    }
+    case Stop() => become(stopped)
   }
 
   def stopped: Receive = {

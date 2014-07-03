@@ -24,10 +24,10 @@ class ApartmentsLinksExtractor(config: FanaConfig) extends Actor {
 
   def apartmentsListingURL: String = config.baseUrl + config.apartmentsListingURL
 
-  implicit def htmlDocument: Document = Jsoup.connect(apartmentsListingURL).get()
+  implicit def htmlDocument: Document = Jsoup.parse(scala.io.Source.fromURL(apartmentsListingURL).mkString)
 
   def apartmentsLinks(implicit document: Document): List[String] = {
-    htmlDocument.select(ApartmentsAnchors).map(config.baseUrl + _.href).toList
+    document.select(ApartmentsAnchors).map(config.baseUrl + _.href).toList
   }
 
   override def receive: Receive = {

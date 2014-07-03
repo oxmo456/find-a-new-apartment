@@ -23,8 +23,8 @@ class LatestApartmentsFilter(jedisPool: JedisPool, apartmentsSetKey: String) ext
 
     val transaction = jedis.multi()
 
-    apartments.foreach(apartments => {
-      transaction.sadd(apartmentsSetKey, apartments.sha1)
+    apartments.foreach(apartment => {
+      transaction.sadd(apartmentsSetKey, apartment.sha1)
     })
 
     val insertionsResult = transaction.exec()
@@ -34,6 +34,11 @@ class LatestApartmentsFilter(jedisPool: JedisPool, apartmentsSetKey: String) ext
       if (insertionsResult.get(index) == 1)
     } yield apartment)
 
+  }
+
+  override def postStop(): Unit = {
+    jedisPool.returnResource(jedis)
+    super.postStop()
   }
 
   override def receive: Receive = {

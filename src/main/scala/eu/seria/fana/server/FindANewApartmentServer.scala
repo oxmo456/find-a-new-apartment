@@ -2,11 +2,10 @@ package eu.seria.fana.server
 
 import unfiltered.netty.{ServerErrorResponse, future}
 import scala.concurrent.{Future, ExecutionContext}
-import scala.concurrent.duration._
 import unfiltered.netty.future.Plan.Intent
 import unfiltered.request.{Path, GET}
 import unfiltered.response.ResponseString
-import eu.seria.fana.{ FanaConfig, FindANewApartment}
+import eu.seria.fana.{FanaConfig, FindANewApartment}
 import eu.seria.utils.ApplicationMode._
 import com.typesafe.config.ConfigFactory
 
@@ -19,9 +18,7 @@ class FindANewApartmentServer(mode: Mode) extends future.Plan with ServerErrorRe
     .handler(this)
     .beforeStop {
     findANewApartment.kill()
-  }.run(s =>
-    println("starting unfiltered app at localhost on port %s".format(s.port))
-    )
+  }.run { _ => println("yeha!")}
 
 
   lazy val findANewApartment = new FindANewApartment(FanaConfig(conf.getConfig("fana")))
