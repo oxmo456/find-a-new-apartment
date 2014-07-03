@@ -13,3 +13,5 @@ case class Apartment(link: String,
   )
 
 }
+
+case class ApartmentLocation(latitude: Float, longitude: Float)
