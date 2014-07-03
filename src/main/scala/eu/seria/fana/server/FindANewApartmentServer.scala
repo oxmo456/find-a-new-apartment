@@ -6,12 +6,14 @@ import scala.concurrent.duration._
 import unfiltered.netty.future.Plan.Intent
 import unfiltered.request.{Path, GET}
 import unfiltered.response.ResponseString
-import eu.seria.fana.{RedisConfig, Config, FindANewApartment}
+import eu.seria.fana.{ FanaConfig, FindANewApartment}
+import eu.seria.utils.Application._
+import com.typesafe.config.ConfigFactory
 
 @io.netty.channel.ChannelHandler.Sharable
-class FindANewApartmentServer extends future.Plan with ServerErrorResponse {
+class FindANewApartmentServer(mode: Mode) extends future.Plan with ServerErrorResponse {
 
-  val logger = org.clapper.avsl.Logger(this.getClass)
+  val conf = ConfigFactory.load(mode.toString).withFallback(ConfigFactory.load())
 
   unfiltered.netty.Http(8080)
     .handler(this)
@@ -22,11 +24,7 @@ class FindANewApartmentServer extends future.Plan with ServerErrorResponse {
     )
 
 
-  lazy val findANewApartment = new FindANewApartment(Config("http://www.kijiji.ca",
-    "/b-appartement-condo/ville-de-montreal/villeray/k0c37l1700281?origin=ps",
-    10 seconds,
-    RedisConfig("10.0.1.6", 6379, "apartments")
-  ))
+  lazy val findANewApartment = new FindANewApartment(FanaConfig(conf.getConfig("fana")))
 
   override def intent: Intent = {
 

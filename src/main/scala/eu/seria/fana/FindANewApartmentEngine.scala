@@ -13,11 +13,11 @@ case class Status()
 
 object FindANewApartmentEngine {
 
-  def props(config: Config): Props = Props(new FindANewApartmentEngine(config))
+  def props(config: FanaConfig): Props = Props(new FindANewApartmentEngine(config))
 
 }
 
-private class FindANewApartmentEngine(config: Config) extends Actor {
+private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
 
   import context._
 

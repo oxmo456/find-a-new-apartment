@@ -14,7 +14,7 @@ case class ApartmentExtracted(apartment: Apartment)
 
 object ApartmentExtractor {
 
-  def props(config: Config) = Props(new ApartmentExtractor(config))
+  def props(config: FanaConfig) = Props(new ApartmentExtractor(config))
 
   val MetaDescription = "head meta[name=description]"
   val Price = "span[itemprop=price] strong"
@@ -24,7 +24,7 @@ object ApartmentExtractor {
 
 }
 
-class ApartmentExtractor(config: Config) extends Actor {
+class ApartmentExtractor(config: FanaConfig) extends Actor {
 
   import ApartmentExtractor._
 

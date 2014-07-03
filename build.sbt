@@ -10,7 +10,6 @@ libraryDependencies ++= Seq(
   "redis.clients" % "jedis" % "2.4.2",
   "net.databinder" %% "unfiltered-netty-server" % "0.8.0",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
-  "org.clapper" %% "avsl" % "1.0.1",
   "com.typesafe" % "config" % "1.2.1"
 )
 

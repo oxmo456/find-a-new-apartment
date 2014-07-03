@@ -10,11 +10,11 @@ case class ExtractApartments()
 
 object ApartmentsExtractor {
 
-  def props(config: Config, manager: ActorRef): Props = Props(new ApartmentsExtractor(config, manager))
+  def props(config: FanaConfig, manager: ActorRef): Props = Props(new ApartmentsExtractor(config, manager))
 
 }
 
-class ApartmentsExtractor(config: Config, manager: ActorRef) extends Actor {
+class ApartmentsExtractor(config: FanaConfig, manager: ActorRef) extends Actor {
 
   import context._
 

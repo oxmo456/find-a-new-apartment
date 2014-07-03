@@ -12,22 +12,22 @@ case class ApartmentsLinksExtracted(apartmentsLinks: List[String])
 
 object ApartmentsLinksExtractor {
 
-  def props(config: Config): Props = Props(new ApartmentsLinksExtractor(config))
+  def props(config: FanaConfig): Props = Props(new ApartmentsLinksExtractor(config))
 
   val ApartmentsAnchors = "table.top-feature .description a, table.regular-ad .description a"
 
 }
 
-class ApartmentsLinksExtractor(config: Config) extends Actor {
+class ApartmentsLinksExtractor(config: FanaConfig) extends Actor {
 
   import ApartmentsLinksExtractor._
 
-  def apartmentsListingURL: String = config.baseURL + config.apartmentsListingURL
+  def apartmentsListingURL: String = config.baseUrl + config.apartmentsListingURL
 
   implicit def htmlDocument: Document = Jsoup.connect(apartmentsListingURL).get()
 
   def apartmentsLinks(implicit document: Document): List[String] = {
-    htmlDocument.select(ApartmentsAnchors).map(config.baseURL + _.href).toList
+    htmlDocument.select(ApartmentsAnchors).map(config.baseUrl + _.href).toList
   }
 
   override def receive: Receive = {
