@@ -1,7 +1,10 @@
 package eu.seria.fana
 
-import akka.actor.{PoisonPill, ActorRef, Props, Actor}
-import redis.clients.jedis.{JedisPoolConfig, JedisPool, Jedis}
+import akka.actor.{Props, Actor}
+import redis.clients.jedis.{JedisPoolConfig, JedisPool}
+import akka.routing.{RoundRobinPool}
+import akka.event.Logging.LoggerInitialized
+import akka.event.Logging
 
 case class Start()
 
@@ -19,9 +22,13 @@ object FindANewApartmentEngine {
 
 private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
 
+
   import context._
 
-  def apartmentsExtractor = system.actorOf(ApartmentsExtractor.props(config, self))
+  val log = Logging(system, this)
+
+  lazy val apartmentsExtractor = system.actorOf(ApartmentsExtractor.props(config, self)
+    .withRouter(RoundRobinPool(nrOfInstances = 4)))
 
   lazy val apartmentsStorage = system.actorOf(ApartmentsStorage.props(jedisPool))
 
@@ -37,19 +44,24 @@ private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
     case ApartmentsStored(apartments) => newApartmentsNotifier ! SendNewApartmentsNotification(apartments)
     case LatestApartments(apartments) => apartmentsStorage ! StoreApartments(apartments)
     case ApartmentsExtracted(apartments) => {
+      log.info(s"ApartmentsExtracted(${apartments.length}})")
       latestApartmentsFilter ! FilterLatestApartments(apartments)
-      sender ! PoisonPill
     }
     case Update() => {
+      log.info("Update()")
       apartmentsExtractor ! ExtractApartments()
       system.scheduler.scheduleOnce(config.updateInterval, self, Update())
     }
-    case Stop() => become(stopped)
+    case Stop() => {
+      log.info("Stop()")
+      become(stopped)
+    }
   }
 
   def stopped: Receive = {
     case Status() => sender ! "stopped"
     case Start() => {
+      log.info("Start()")
       self ! Update()
       become(started)
     }
@@ -58,6 +70,7 @@ private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
   override def receive: Receive = stopped
 
   override def postStop(): Unit = {
+    log.info("postStop")
     jedisPool.destroy()
     super.postStop()
   }

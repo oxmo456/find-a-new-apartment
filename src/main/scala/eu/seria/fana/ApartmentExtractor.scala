@@ -7,6 +7,7 @@ import eu.seria.utils.jsoup._
 
 import collection.JavaConversions._
 import scala.util.Try
+import akka.event.Logging
 
 case class ExtractApartment(apartmentLink: String)
 
@@ -28,6 +29,8 @@ class ApartmentExtractor(config: FanaConfig) extends Actor {
 
   import ApartmentExtractor._
 
+  val log = Logging(context.system, this)
+
   def description(implicit htmlDocument: Document): String = {
     htmlDocument.select(MetaDescription).first().content
   }
@@ -46,6 +49,7 @@ class ApartmentExtractor(config: FanaConfig) extends Actor {
 
   override def receive: Receive = {
     case ExtractApartment(apartmentLink) => {
+      log.info(s"ExtractApartment(${apartmentLink.substring(0, 10)}...)")
       implicit val htmlDocument = Jsoup.parse(scala.io.Source.fromURL(apartmentLink).mkString)
       sender ! ApartmentExtracted(Apartment(
         apartmentLink,

@@ -10,7 +10,7 @@ class FindANewApartment(config: FanaConfig) {
 
   implicit val timeout = Timeout(5 seconds)
 
-  val system = ActorSystem(getClass.getName.replace('.', '-'))
+  val system = ActorSystem("fana")
 
   val engine = system.actorOf(FindANewApartmentEngine.props(config))
 

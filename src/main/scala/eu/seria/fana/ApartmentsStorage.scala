@@ -3,6 +3,7 @@ package eu.seria.fana
 import akka.actor.{Props, Actor}
 import redis.clients.jedis.JedisPool
 import play.api.libs.json.{JsArray, JsNumber, JsString, JsObject}
+import akka.event.Logging
 
 case class StoreApartments(apartments: List[Apartment])
 
@@ -18,6 +19,8 @@ class ApartmentsStorage(jedisPool: JedisPool) extends Actor {
 
   lazy val jedis = jedisPool.getResource
 
+  val log = Logging(context.system, this)
+
   def apartmentToJson(apartment: Apartment) = JsObject(
     "link" -> JsString(apartment.link) ::
       "description" -> JsString(apartment.description) ::
@@ -27,6 +30,9 @@ class ApartmentsStorage(jedisPool: JedisPool) extends Actor {
 
   override def receive: Receive = {
     case StoreApartments(apartments) => {
+
+      log.info(s"StoreApartments(${apartments.length})")
+
       val transaction = jedis.multi()
 
       apartments.foreach(apartment => {

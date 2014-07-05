@@ -1,7 +1,9 @@
 package eu.seria.fana
 
-import akka.actor.{ActorRef, PoisonPill, Props, Actor}
+import akka.actor.{ActorRef, Props, Actor}
 import eu.seria.utils._
+import akka.routing.RoundRobinPool
+import akka.event.Logging
 
 
 case class ApartmentsExtracted(apartments: List[Apartment])
@@ -18,34 +20,39 @@ class ApartmentsExtractor(config: FanaConfig, manager: ActorRef) extends Actor {
 
   import context._
 
-  def apartmentsLinksExtractor: ActorRef = system.actorOf(ApartmentsLinksExtractor.props(config))
+  val log = Logging(system, this)
 
-  def apartmentExtractor: ActorRef = system.actorOf(ApartmentExtractor.props(config))
+  lazy val apartmentsLinksExtractor: ActorRef = system.actorOf(ApartmentsLinksExtractor.props(config)
+    .withRouter(RoundRobinPool(nrOfInstances = 4)))
 
-  def handleExtractedApartments(remainingApartments: Counter, extractedApartments: List[Apartment]): Receive =
-    if (remainingApartments > 0) {
-      {
-        case ApartmentExtracted(apartment) =>
-          become(handleExtractedApartments(remainingApartments.decrease, apartment :: extractedApartments))
+  lazy val apartmentExtractor: ActorRef = system.actorOf(ApartmentExtractor.props(config)
+    .withRouter(RoundRobinPool(nrOfInstances = 8)))
+
+  def handleExtractedApartments(remainingApartments: Counter, extractedApartments: List[Apartment]): Receive = {
+    case ApartmentExtracted(apartment) =>
+      log.info(s"$remainingApartments ApartmentExtracted(${apartment.sha1})")
+      val remaining = remainingApartments.decrease
+      if (remaining == 0) {
+        manager ! ApartmentsExtracted(apartment :: extractedApartments)
+        become(receive)
+      } else {
+        become(handleExtractedApartments(remaining, apartment :: extractedApartments))
       }
-    } else {
-      manager ! ApartmentsExtracted(extractedApartments)
-      noop
-    }
+  }
 
   def handleExtractedApartmentsLinks: Receive = {
     case ApartmentsLinksExtracted(apartmentsLinks) => {
+      log.info(s"ApartmentsLinksExtracted(${apartmentsLinks.length})")
       apartmentsLinks.foreach(apartmentLink => {
         apartmentExtractor ! ExtractApartment(apartmentLink)
       })
-      sender ! PoisonPill
       become(handleExtractedApartments(Counter(apartmentsLinks.size), Nil))
     }
   }
 
   override def receive: Receive = {
     case ExtractApartments() => {
-
+      log.info("ExtractApartments()")
       apartmentsLinksExtractor ! ExtractApartmentsLinks()
       become(handleExtractedApartmentsLinks)
     }

@@ -3,6 +3,7 @@ package eu.seria.fana
 import akka.actor.{Props, Actor}
 import redis.clients.jedis.JedisPool
 import collection.JavaConversions._
+import akka.event.Logging
 
 case class FilterLatestApartments(apartments: List[Apartment])
 
@@ -18,6 +19,8 @@ object LatestApartmentsFilter {
 class LatestApartmentsFilter(jedisPool: JedisPool, apartmentsSetKey: String) extends Actor {
 
   lazy val jedis = jedisPool.getResource
+
+  val log = Logging(context.system, this)
 
   def latestApartments(apartments: List[Apartment]): LatestApartments = {
 
@@ -42,6 +45,9 @@ class LatestApartmentsFilter(jedisPool: JedisPool, apartmentsSetKey: String) ext
   }
 
   override def receive: Receive = {
-    case FilterLatestApartments(apartments) => sender ! latestApartments(apartments)
+    case FilterLatestApartments(apartments) => {
+      log.info(s"FilterLatestApartments(${apartments.length})")
+      sender ! latestApartments(apartments)
+    }
   }
 }

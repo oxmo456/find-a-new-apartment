@@ -3,6 +3,7 @@ package eu.seria.fana
 import akka.actor.{Props, Actor}
 import twitter4j.TwitterFactory
 import twitter4j.conf.ConfigurationBuilder
+import akka.event.Logging
 
 case class SendNewApartmentsNotification(apartments: List[Apartment])
 
@@ -13,6 +14,8 @@ object NewApartmentsNotifier {
 }
 
 class NewApartmentsNotifier(config: FanaConfig) extends Actor {
+
+  val log = Logging(context.system, this)
 
   def twitterConf = new ConfigurationBuilder()
     .setDebugEnabled(false)
@@ -25,7 +28,12 @@ class NewApartmentsNotifier(config: FanaConfig) extends Actor {
   lazy val twitter = new TwitterFactory(twitterConf).getInstance()
 
   override def receive: Receive = {
+
+
     case SendNewApartmentsNotification(apartments) => {
+
+      log.info(s"SendNewApartmentsNotification(${apartments})")
+
       apartments.foreach(apartment => {
         twitter.sendDirectMessage("@Aunimi", apartment.sha1)
       })
