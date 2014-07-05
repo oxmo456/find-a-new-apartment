@@ -2,8 +2,7 @@ package eu.seria.fana
 
 import akka.actor.{Props, Actor}
 import redis.clients.jedis.{JedisPoolConfig, JedisPool}
-import akka.routing.{RoundRobinPool}
-import akka.event.Logging.LoggerInitialized
+import akka.routing.RoundRobinPool
 import akka.event.Logging
 
 case class Start()
@@ -27,15 +26,18 @@ private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
 
   val log = Logging(system, this)
 
-  lazy val apartmentsExtractor = system.actorOf(ApartmentsExtractor.props(config, self)
-    .withRouter(RoundRobinPool(nrOfInstances = 4)))
+  lazy val apartmentsExtractor = context.actorOf(ApartmentsExtractor.props(config, self)
+    .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartments-extractor")
 
-  lazy val apartmentsStorage = system.actorOf(ApartmentsStorage.props(jedisPool))
+  lazy val apartmentsStorage = context.actorOf(ApartmentsStorage.props(jedisPool)
+    .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartments-storage")
 
-  lazy val newApartmentsNotifier = system.actorOf(NewApartmentsNotifier.props(config))
+  lazy val newApartmentsNotifier = context.actorOf(NewApartmentsNotifier.props(config)
+    .withRouter(RoundRobinPool(nrOfInstances = 4)), "new-apartments-notifier")
 
   lazy val latestApartmentsFilter =
-    system.actorOf(LatestApartmentsFilter.props(jedisPool, config.redis.apartmentsSetKey))
+    context.actorOf(LatestApartmentsFilter.props(jedisPool, config.redis.apartmentsSetKey)
+      .withRouter(RoundRobinPool(nrOfInstances = 4)), "latest-apartments-filter")
 
   lazy val jedisPool = new JedisPool(new JedisPoolConfig(), config.redis.host, config.redis.port)
 

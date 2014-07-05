@@ -12,7 +12,7 @@ class FindANewApartment(config: FanaConfig) {
 
   val system = ActorSystem("fana")
 
-  val engine = system.actorOf(FindANewApartmentEngine.props(config))
+  val engine = system.actorOf(FindANewApartmentEngine.props(config), "engine")
 
   def stop(): Unit = engine ! Stop()
 
