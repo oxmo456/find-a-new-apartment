@@ -27,17 +27,17 @@ private class FindANewApartmentEngine(config: FanaConfig) extends Actor {
   val log = Logging(system, this)
 
   lazy val apartmentsExtractor = context.actorOf(ApartmentsExtractor.props(config, self)
-    .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartments-extractor")
+    .withRouter(RoundRobinPool(nrOfInstances = 4)))
 
   lazy val apartmentsStorage = context.actorOf(ApartmentsStorage.props(jedisPool)
-    .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartments-storage")
+    .withRouter(RoundRobinPool(nrOfInstances = 4)))
 
   lazy val newApartmentsNotifier = context.actorOf(NewApartmentsNotifier.props(config)
-    .withRouter(RoundRobinPool(nrOfInstances = 4)), "new-apartments-notifier")
+    .withRouter(RoundRobinPool(nrOfInstances = 4)))
 
   lazy val latestApartmentsFilter =
     context.actorOf(LatestApartmentsFilter.props(jedisPool, config.redis.apartmentsSetKey)
-      .withRouter(RoundRobinPool(nrOfInstances = 4)), "latest-apartments-filter")
+      .withRouter(RoundRobinPool(nrOfInstances = 4)))
 
   lazy val jedisPool = new JedisPool(new JedisPoolConfig(), config.redis.host, config.redis.port)
 

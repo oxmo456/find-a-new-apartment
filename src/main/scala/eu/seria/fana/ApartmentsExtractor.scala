@@ -23,10 +23,10 @@ class ApartmentsExtractor(config: FanaConfig, manager: ActorRef) extends Actor {
   val log = Logging(system, this)
 
   lazy val apartmentsLinksExtractor: ActorRef = context.actorOf(ApartmentsLinksExtractor.props(config)
-    .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartments-links-extractor")
+    .withRouter(RoundRobinPool(nrOfInstances = 4)))
 
   lazy val apartmentExtractor: ActorRef = context.actorOf(ApartmentExtractor.props(config)
-    .withRouter(RoundRobinPool(nrOfInstances = 8)), "apartment-extractor")
+    .withRouter(RoundRobinPool(nrOfInstances = 8)))
 
   def handleExtractedApartments(remainingApartments: Counter, extractedApartments: List[Apartment]): Receive = {
     case ApartmentExtracted(apartment) =>
