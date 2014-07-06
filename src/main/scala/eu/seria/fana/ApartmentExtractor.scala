@@ -54,6 +54,7 @@ class ApartmentExtractor(config: FanaConfig) extends Actor {
       sender ! ApartmentExtracted(Apartment(
         apartmentLink,
         description,
+        None,
         price,
         images
       ))

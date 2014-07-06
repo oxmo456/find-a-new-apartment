@@ -25,7 +25,7 @@ class ApartmentsLinksExtractor(config: FanaConfig) extends Actor {
 
   val log = Logging(context.system,this)
 
-  def apartmentsListingURL: String = config.baseUrl + config.apartmentsListingURL
+  def apartmentsListingURL: String = config.baseUrl + config.apartmentsListingUrl
 
   implicit def htmlDocument: Document = Jsoup.parse(scala.io.Source.fromURL(apartmentsListingURL).mkString)
 

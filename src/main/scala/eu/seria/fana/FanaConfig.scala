@@ -8,7 +8,7 @@ case class FanaConfig(conf: Config) {
 
   val baseUrl = conf.getString("baseUrl")
 
-  val apartmentsListingURL = conf.getString("apartmentsListingURL")
+  val apartmentsListingUrl = conf.getString("apartmentsListingUrl")
 
   val updateInterval = conf.getInt("updateInterval") seconds
 
