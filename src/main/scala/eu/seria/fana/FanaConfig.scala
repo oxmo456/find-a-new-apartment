@@ -10,7 +10,9 @@ case class FanaConfig(conf: Config) {
 
   val apartmentsListingUrl = conf.getString("apartmentsListingUrl")
 
-  val updateInterval = conf.getInt("updateInterval") seconds
+  val apartmentMapUrl = conf.getString("apartmentMapUrl")
+
+  val updateInterval = conf.getInt("updateInterval") milliseconds
 
   object redis {
 

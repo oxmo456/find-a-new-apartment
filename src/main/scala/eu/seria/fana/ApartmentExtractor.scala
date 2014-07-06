@@ -1,13 +1,12 @@
 package eu.seria.fana
 
-import akka.actor.{Props, Actor}
+import akka.actor.{ActorLogging, Props, Actor}
 import org.jsoup.nodes.Document
 import org.jsoup.Jsoup
 import eu.seria.utils.jsoup._
 
 import collection.JavaConversions._
 import scala.util.Try
-import akka.event.Logging
 
 case class ExtractApartment(apartmentLink: String)
 
@@ -22,14 +21,14 @@ object ApartmentExtractor {
   val Images = "#ImageThumbnails ul li img"
   val ImageName = """\$_\d{2}.JPG""".r
   val ExtractPrice = """\d+,?""".r
+  val ExtractLatLng = """LatLng\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)""".r
+  val ExtractCode = """(?<=/)\d+(?=[?#]|$)""".r
 
 }
 
-class ApartmentExtractor(config: FanaConfig) extends Actor {
+class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
 
   import ApartmentExtractor._
-
-  val log = Logging(context.system, this)
 
   def description(implicit htmlDocument: Document): String = {
     htmlDocument.select(MetaDescription).first().content
@@ -47,14 +46,34 @@ class ApartmentExtractor(config: FanaConfig) extends Actor {
     }).toList
   }
 
+  def apartmentCode(apartmentLink: String): Option[String] = {
+    ExtractCode.findFirstIn(apartmentLink)
+  }
+
+  def apartmentLocation(apartmentCode: Option[String]): Option[ApartmentLocation] = {
+    apartmentCode.fold[Option[ApartmentLocation]](None) {
+      code => {
+        val apartmentMapPage = scala.io.Source.fromURL(config.baseUrl + config.apartmentMapUrl + code).mkString
+        ExtractLatLng.findAllIn(apartmentMapPage).matchData.foldLeft[Option[ApartmentLocation]](None) {
+          (result, regExpMatch) => {
+            Option(ApartmentLocation(regExpMatch.group(1).toFloat, regExpMatch.group(2).toFloat))
+          }
+        }
+      }
+    }
+  }
+
+
   override def receive: Receive = {
     case ExtractApartment(apartmentLink) => {
-      log.info(s"ExtractApartment(${apartmentLink.substring(0, 10)}...)")
+      log.info(s"ExtractApartment(...${apartmentLink.substring(apartmentLink.length - 20)})")
+
       implicit val htmlDocument = Jsoup.parse(scala.io.Source.fromURL(apartmentLink).mkString)
+
       sender ! ApartmentExtracted(Apartment(
         apartmentLink,
         description,
-        None,
+        apartmentLocation(apartmentCode(apartmentLink)),
         price,
         images
       ))

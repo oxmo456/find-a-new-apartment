@@ -1,16 +1,15 @@
-package eu.seria.fana.server
+package eu.seria.fana
 
 import unfiltered.netty.{ServerErrorResponse, future}
 import scala.concurrent.{Future, ExecutionContext}
 import unfiltered.netty.future.Plan.Intent
 import unfiltered.request.{Path, GET}
 import unfiltered.response.ResponseString
-import eu.seria.fana.{FanaConfig, FindANewApartment}
 import eu.seria.utils.ApplicationMode._
 import com.typesafe.config.ConfigFactory
 
 @io.netty.channel.ChannelHandler.Sharable
-class FindANewApartmentServer(mode: Mode) extends future.Plan with ServerErrorResponse {
+class Server(mode: Mode) extends future.Plan with ServerErrorResponse {
 
   val conf = ConfigFactory.load(mode.toString).withFallback(ConfigFactory.load())
 
@@ -18,7 +17,8 @@ class FindANewApartmentServer(mode: Mode) extends future.Plan with ServerErrorRe
     .handler(this)
     .beforeStop {
     findANewApartment.kill()
-  }.run { _ => println("yeha!")}
+    //TODO remove auto start
+  }.run { _ => println("yeha!"); findANewApartment.start()}
 
 
   lazy val findANewApartment = new FindANewApartment(FanaConfig(conf.getConfig("fana")))

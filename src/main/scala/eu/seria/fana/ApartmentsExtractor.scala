@@ -1,10 +1,11 @@
 package eu.seria.fana
 
-import akka.actor.{ActorRef, Props, Actor}
-import eu.seria.utils._
+import akka.actor.{ActorLogging, Actor, Props}
+import akka.pattern.{pipe, ask}
+import scala.concurrent.duration._
 import akka.routing.RoundRobinPool
-import akka.event.Logging
-
+import akka.util.Timeout
+import scala.concurrent.Future
 
 case class ApartmentsExtracted(apartments: List[Apartment])
 
@@ -12,49 +13,48 @@ case class ExtractApartments()
 
 object ApartmentsExtractor {
 
-  def props(config: FanaConfig, manager: ActorRef): Props = Props(new ApartmentsExtractor(config, manager))
+  def props(config: FanaConfig): Props = Props(new ApartmentsExtractor(config))
 
 }
 
-class ApartmentsExtractor(config: FanaConfig, manager: ActorRef) extends Actor {
 
-  import context._
+class ApartmentsExtractor(config: FanaConfig) extends Actor with ActorLogging {
 
-  val log = Logging(system, this)
+  import context.dispatcher
 
-  lazy val apartmentsLinksExtractor: ActorRef = context.actorOf(ApartmentsLinksExtractor.props(config)
-    .withRouter(RoundRobinPool(nrOfInstances = 4)))
+  implicit val timeout = Timeout(30 seconds)
 
-  lazy val apartmentExtractor: ActorRef = context.actorOf(ApartmentExtractor.props(config)
-    .withRouter(RoundRobinPool(nrOfInstances = 8)))
+  lazy val apartmentsLinksExtractor = context.actorOf(ApartmentsLinksExtractor.props(config)
+    .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartments-links-extractor")
 
-  def handleExtractedApartments(remainingApartments: Counter, extractedApartments: List[Apartment]): Receive = {
-    case ApartmentExtracted(apartment) =>
-      log.info(s"$remainingApartments ApartmentExtracted(${apartment.sha1})")
-      val remaining = remainingApartments.decrease
-      if (remaining == 0) {
-        manager ! ApartmentsExtracted(apartment :: extractedApartments)
-        become(receive)
-      } else {
-        become(handleExtractedApartments(remaining, apartment :: extractedApartments))
-      }
+  lazy val apartmentExtractor = context.actorOf(ApartmentExtractor.props(config)
+    .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartment-extractor")
+
+  def extractApartmentsLinks: Future[List[String]] = {
+    ask(apartmentsLinksExtractor, ExtractApartmentsLinks()).mapTo[ApartmentsLinksExtracted].map(_.apartmentsLinks)
   }
 
-  def handleExtractedApartmentsLinks: Receive = {
-    case ApartmentsLinksExtracted(apartmentsLinks) => {
-      log.info(s"ApartmentsLinksExtracted(${apartmentsLinks.length})")
-      apartmentsLinks.foreach(apartmentLink => {
-        apartmentExtractor ! ExtractApartment(apartmentLink)
-      })
-      become(handleExtractedApartments(Counter(apartmentsLinks.size), Nil))
-    }
+  def extractApartments(apartmentsLinks: List[String]): Future[List[Apartment]] = {
+    Future.sequence(for {
+      apartmentLink <- apartmentsLinks
+    } yield {
+      ask(apartmentExtractor, ExtractApartment(apartmentLink)).mapTo[ApartmentExtracted].map(_.apartment)
+    })
   }
 
   override def receive: Receive = {
     case ExtractApartments() => {
       log.info("ExtractApartments()")
-      apartmentsLinksExtractor ! ExtractApartmentsLinks()
-      become(handleExtractedApartmentsLinks)
+
+      (for {
+        apartmentsLinks <- extractApartmentsLinks
+        apartments <- extractApartments(apartmentsLinks)
+      } yield {
+        ApartmentsExtracted(apartments)
+      }) pipeTo sender
+
     }
+
+
   }
 }

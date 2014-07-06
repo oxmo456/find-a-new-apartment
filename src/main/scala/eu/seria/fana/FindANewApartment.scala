@@ -8,14 +8,11 @@ import scala.concurrent.duration._
 
 class FindANewApartment(config: FanaConfig) {
 
-
-  println(s"config ? $config")
-
   implicit val timeout = Timeout(5 seconds)
 
   val system = ActorSystem("fana")
 
-  val engine = system.actorOf(FindANewApartmentEngine.props(config), "engine")
+  val engine = system.actorOf(Engine.props(config), "engine")
 
   def stop(): Unit = engine ! Stop()
 
@@ -26,5 +23,6 @@ class FindANewApartment(config: FanaConfig) {
   def status(): Future[Any] = {
     engine ? Status()
   }
+
 
 }

@@ -1,11 +1,10 @@
 package eu.seria.fana
 
-import akka.actor.{Props, Actor}
+import akka.actor.{ActorLogging, Props, Actor}
 import org.jsoup.Jsoup
 import eu.seria.utils.jsoup._
 import collection.JavaConversions._
 import org.jsoup.nodes.Document
-import akka.event.Logging
 
 case class ExtractApartmentsLinks()
 
@@ -19,11 +18,9 @@ object ApartmentsLinksExtractor {
 
 }
 
-class ApartmentsLinksExtractor(config: FanaConfig) extends Actor {
+class ApartmentsLinksExtractor(config: FanaConfig) extends Actor with ActorLogging {
 
   import ApartmentsLinksExtractor._
-
-  val log = Logging(context.system,this)
 
   def apartmentsListingURL: String = config.baseUrl + config.apartmentsListingUrl
 
