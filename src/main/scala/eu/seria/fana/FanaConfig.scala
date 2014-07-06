@@ -15,13 +15,15 @@ case class FanaConfig(conf: Config) {
 
   val updateInterval = conf.getInt("updateInterval") milliseconds
 
+  val notificationsRecipients: List[String] = conf.getStringList("notificationsRecipients").toList
+
+  val notificationsEnabled = conf.getBoolean("notificationsEnabled")
+
   object redis {
 
     val host = conf.getString("redis.host")
 
     val port = conf.getInt("redis.port")
-
-    val apartmentsSetKey = conf.getString("redis.apartmentsSetKey")
 
   }
 
@@ -31,8 +33,6 @@ case class FanaConfig(conf: Config) {
     val consumerSecret = conf.getString("twitter.consumerSecret")
     val accessToken = conf.getString("twitter.accessToken")
     val accessTokenSecret = conf.getString("twitter.accessTokenSecret")
-    val recipients: List[String] = conf.getStringList("twitter.recipients").toList
-    val enabled = conf.getBoolean("twitter.enabled")
 
   }
 

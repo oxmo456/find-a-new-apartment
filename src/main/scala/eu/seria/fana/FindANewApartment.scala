@@ -8,7 +8,6 @@ import scala.concurrent.duration._
 
 class FindANewApartment(config: FanaConfig) {
 
-
   implicit val timeout = Timeout(5 seconds)
 
   val system = ActorSystem("fana")
@@ -32,6 +31,5 @@ class FindANewApartment(config: FanaConfig) {
       result => result.apartment.getOrElse("")
     }
   }
-
 
 }

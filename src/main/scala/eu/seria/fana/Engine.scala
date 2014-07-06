@@ -33,7 +33,7 @@ class Engine(config: FanaConfig) extends Actor with ActorLogging {
   lazy val apartmentsExtractor = context.actorOf(ApartmentsExtractor.props(config)
     .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartments-extractor")
 
-  lazy val latestApartmentsFilter = context.actorOf(LatestApartmentsFilter.props(jedisPool, config.redis.apartmentsSetKey))
+  lazy val latestApartmentsFilter = context.actorOf(LatestApartmentsFilter.props(jedisPool, "apartments"))
 
   lazy val jedisPool = new JedisPool(new JedisPoolConfig(), config.redis.host, config.redis.port)
 
