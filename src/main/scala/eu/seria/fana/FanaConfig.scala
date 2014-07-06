@@ -2,6 +2,7 @@ package eu.seria.fana
 
 import com.typesafe.config.Config
 import scala.concurrent.duration._
+import scala.collection.JavaConversions._
 
 
 case class FanaConfig(conf: Config) {
@@ -30,6 +31,8 @@ case class FanaConfig(conf: Config) {
     val consumerSecret = conf.getString("twitter.consumerSecret")
     val accessToken = conf.getString("twitter.accessToken")
     val accessTokenSecret = conf.getString("twitter.accessTokenSecret")
+    val recipients: List[String] = conf.getStringList("twitter.recipients").toList
+    val enabled = conf.getBoolean("twitter.enabled")
 
   }
 

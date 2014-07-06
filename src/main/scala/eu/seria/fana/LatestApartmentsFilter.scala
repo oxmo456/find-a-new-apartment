@@ -1,9 +1,7 @@
 package eu.seria.fana
 
-import akka.actor.{Props, Actor}
+import akka.actor.{ActorLogging, Props, Actor}
 import redis.clients.jedis.JedisPool
-import collection.JavaConversions._
-import akka.event.Logging
 
 case class FilterLatestApartments(apartments: List[Apartment])
 
@@ -16,11 +14,9 @@ object LatestApartmentsFilter {
 
 }
 
-class LatestApartmentsFilter(jedisPool: JedisPool, apartmentsSetKey: String) extends Actor {
+class LatestApartmentsFilter(jedisPool: JedisPool, apartmentsSetKey: String) extends Actor with ActorLogging {
 
   lazy val jedis = jedisPool.getResource
-
-  val log = Logging(context.system, this)
 
   def latestApartments(apartments: List[Apartment]): LatestApartments = {
 

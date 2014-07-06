@@ -9,6 +9,11 @@ case class StoreApartments(apartments: List[Apartment])
 
 case class ApartmentsStored(apartments: List[Apartment])
 
+case class FindApartment(id: String)
+
+case class FindApartmentResult(apartment: Option[String])
+
+
 object ApartmentsStorage {
 
   def props(jedisPool: JedisPool) = Props(new ApartmentsStorage(jedisPool))
@@ -29,6 +34,7 @@ class ApartmentsStorage(jedisPool: JedisPool) extends Actor {
       :: Nil)
 
   override def receive: Receive = {
+    case FindApartment(id) => sender ! FindApartmentResult(Option(jedis.get(id)))
     case StoreApartments(apartments) => {
 
       log.info(s"StoreApartments(${apartments.length})")

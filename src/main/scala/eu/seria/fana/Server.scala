@@ -3,7 +3,7 @@ package eu.seria.fana
 import unfiltered.netty.{ServerErrorResponse, future}
 import scala.concurrent.{Future, ExecutionContext}
 import unfiltered.netty.future.Plan.Intent
-import unfiltered.request.{Path, GET}
+import unfiltered.request.{Seg, Path, GET}
 import unfiltered.response.ResponseString
 import eu.seria.utils.ApplicationMode._
 import com.typesafe.config.ConfigFactory
@@ -38,6 +38,11 @@ class Server(mode: Mode) extends future.Plan with ServerErrorResponse {
     }
     case GET(Path("/server/status")) => {
       findANewApartment.status().map(res => ResponseString(res.toString))
+    }
+    case GET(Path(Seg("apartment" :: id :: Nil))) => {
+      findANewApartment.findApartment(id).map(res => {
+        ResponseString(res)
+      })
     }
 
   }
