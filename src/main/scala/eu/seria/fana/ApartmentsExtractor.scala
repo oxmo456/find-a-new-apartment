@@ -28,7 +28,7 @@ class ApartmentsExtractor(config: FanaConfig) extends Actor with ActorLogging {
     .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartments-links-extractor")
 
   lazy val apartmentExtractor = context.actorOf(ApartmentExtractor.props(config)
-    .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartment-extractor")
+    .withRouter(RoundRobinPool(nrOfInstances = 30)), "apartment-extractor")
 
   def extractApartmentsLinks: Future[List[String]] = {
     ask(apartmentsLinksExtractor, ExtractApartmentsLinks()).mapTo[ApartmentsLinksExtracted].map(_.apartmentsLinks)
