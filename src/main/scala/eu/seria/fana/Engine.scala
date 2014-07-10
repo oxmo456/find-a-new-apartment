@@ -33,11 +33,11 @@ class Engine(config: FanaConfig) extends Actor with ActorLogging {
   lazy val apartmentsExtractor = context.actorOf(ApartmentsExtractor.props(config)
     .withRouter(RoundRobinPool(nrOfInstances = 4)), "apartments-extractor")
 
-  lazy val latestApartmentsFilter = context.actorOf(LatestApartmentsFilter.props(jedisPool, "apartments"))
+  lazy val latestApartmentsFilter = context.actorOf(LatestApartmentsFilter.props(jedisPool, "apartments_sha1"))
 
   lazy val jedisPool = new JedisPool(new JedisPoolConfig(), config.redis.host, config.redis.port)
 
-  lazy val apartmentsStorage = context.actorOf(ApartmentsStorage.props(jedisPool))
+  lazy val apartmentsStorage = context.actorOf(ApartmentsStorage.props(jedisPool, "apartments"))
 
   lazy val newApartmentsNotifier = context.actorOf(NewApartmentsNotifier.props(config))
 
@@ -45,6 +45,7 @@ class Engine(config: FanaConfig) extends Actor with ActorLogging {
     case Status() => sender ! Status.Started
     case Stop() => become(stopped)
     case request@FindApartment(id) => apartmentsStorage forward request
+    case request@FindLatestApartments() => apartmentsStorage forward request
     case ApartmentsStored(apartments) => {
       log.info(s"ApartmentsStored(${apartments.length})")
       newApartmentsNotifier ! SendNewApartmentsNotification(apartments)

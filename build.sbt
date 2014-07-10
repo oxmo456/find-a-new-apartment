@@ -1,3 +1,5 @@
+import com.github.retronym.SbtOneJar._
+
 name := "find-a-new-apartment"
 
 version := "1.0"
@@ -20,3 +22,7 @@ resolvers ++= Seq(
   "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/",
   "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 )
+
+oneJarSettings
+
+libraryDependencies += "commons-lang" % "commons-lang" % "2.6"

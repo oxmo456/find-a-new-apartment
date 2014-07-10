@@ -44,6 +44,9 @@ class Server(mode: Mode) extends future.Plan with ServerErrorResponse {
         ResponseString(res)
       })
     }
+    case GET(Path("/apartments")) => {
+      findANewApartment.latestApartments().map(res => ResponseString(res))
+    }
 
   }
 

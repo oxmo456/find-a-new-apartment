@@ -17,6 +17,8 @@ object ApartmentExtractor {
   def props(config: FanaConfig) = Props(new ApartmentExtractor(config))
 
   val MetaDescription = "head meta[name=description]"
+  val Address = ".ad-attributes tr:has(th:contains(Adresse)) td"
+  val Title = "span[itemprop=name] h1"
   val Price = "span[itemprop=price] strong"
   val Images = "#ImageThumbnails ul li img"
   val ImageName = """\$_\d{2}.JPG""".r
@@ -34,6 +36,10 @@ class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
     htmlDocument.select(MetaDescription).first().content
   }
 
+  def title(implicit htmlDocument: Document): String = {
+    htmlDocument.select(Title).first().text
+  }
+
   def price(implicit htmlDocument: Document): Option[Float] = {
     val price = htmlDocument.select(Price).first().textNodes().head.toString
     Try(ExtractPrice.findAllIn(price).mkString.replace(',', '.').toFloat).toOption
@@ -44,6 +50,10 @@ class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
     htmlDocument.select(Images).map(element => {
       ImageName.replaceAllIn(element.src, """\$_20.JPG""")
     }).toList
+  }
+
+  def address(implicit htmlDocument: Document): String = {
+    htmlDocument.select(Address).first().textNodes().head.toString
   }
 
   def apartmentCode(apartmentLink: String): Option[String] = {
@@ -72,7 +82,9 @@ class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
 
       sender ! ApartmentExtracted(Apartment(
         apartmentLink,
+        title,
         description,
+        address,
         apartmentLocation(apartmentCode(apartmentLink)),
         price,
         images

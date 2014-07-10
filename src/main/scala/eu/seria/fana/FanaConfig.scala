@@ -19,6 +19,8 @@ case class FanaConfig(conf: Config) {
 
   val notificationsEnabled = conf.getBoolean("notificationsEnabled")
 
+  val apartmentsViewUrl = conf.getString("apartmentsViewUrl")
+
   object redis {
 
     val host = conf.getString("redis.host")

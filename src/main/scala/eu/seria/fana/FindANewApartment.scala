@@ -32,4 +32,8 @@ class FindANewApartment(config: FanaConfig) {
     }
   }
 
+  def latestApartments(): Future[String] = {
+    ask(engine, FindLatestApartments()).mapTo[FindLatestApartmentsResult].map(_.apartments)
+  }
+
 }

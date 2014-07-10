@@ -1,7 +1,9 @@
 package eu.seria.fana
 
 case class Apartment(link: String,
+                     title: String,
                      description: String,
+                     address: String,
                      location: Option[ApartmentLocation],
                      price: Option[Float],
                      images: List[String]) {

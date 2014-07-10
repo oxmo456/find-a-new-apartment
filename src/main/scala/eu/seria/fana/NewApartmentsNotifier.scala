@@ -31,11 +31,10 @@ class NewApartmentsNotifier(config: FanaConfig) extends Actor with ActorLogging 
     case SendNewApartmentsNotification(apartments) => {
       for {
         recipient <- recipients
-        apartment <- apartments
         if (config.notificationsEnabled)
       } yield {
-        log.info(s"send notification: $recipient ${apartment.sha1}")
-        twitter.sendDirectMessage(recipient, apartment.sha1)
+        log.info(s"send notification: $recipient ${apartments.length}")
+        twitter.sendDirectMessage(recipient, s"""${apartments.length} new apartment(s)! ${config.apartmentsViewUrl}""")
       }
     }
   }
