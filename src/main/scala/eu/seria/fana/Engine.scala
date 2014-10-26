@@ -45,7 +45,7 @@ class Engine(config: FanaConfig) extends Actor with ActorLogging {
     case Status() => sender ! Status.Started
     case Stop() => become(stopped)
     case request@FindApartment(id) => apartmentsStorage forward request
-    case request@FindLatestApartments() => apartmentsStorage forward request
+    case request@FindLatestApartments(_) => apartmentsStorage forward request
     case ApartmentsStored(apartments) => {
       log.info(s"ApartmentsStored(${apartments.length})")
       newApartmentsNotifier ! SendNewApartmentsNotification(apartments)

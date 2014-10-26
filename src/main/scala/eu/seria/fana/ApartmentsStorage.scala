@@ -5,6 +5,7 @@ import redis.clients.jedis.JedisPool
 import play.api.libs.json.{JsArray, JsNumber, JsString, JsObject}
 import akka.event.Logging
 import collection.JavaConversions._
+import eu.seria.fana.SortingOption.SortingOption
 
 case class StoreApartments(apartments: List[Apartment])
 
@@ -12,7 +13,7 @@ case class ApartmentsStored(apartments: List[Apartment])
 
 case class FindApartment(id: String)
 
-case class FindLatestApartments()
+case class FindLatestApartments(sortingOptions: SortingOption)
 
 case class FindLatestApartmentsResult(apartments: String)
 
@@ -47,12 +48,16 @@ class ApartmentsStorage(jedisPool: JedisPool, apartmentsKey: String) extends Act
       "title" -> JsString(apartment.title) :: Nil
   )
 
-  def findLatestApartments: String = {
-    s"""{"apartments":[${jedis.lrange(apartmentsKey, -50L, -1L).mkString(",")}]}"""
+  def findLatestApartments(sortingOptions: SortingOption): String = {
+    val latestApartments: List[String] = (sortingOptions, jedis.lrange(apartmentsKey, -50L, -1L).toList) match {
+      case (SortingOption.NewestFirst, apartments) => apartments.reverse
+      case (_, apartments) => apartments
+    }
+    s"""{"apartments":[${latestApartments.mkString(",")}]}"""
   }
 
   override def receive: Receive = {
-    case FindLatestApartments() => sender ! FindLatestApartmentsResult(findLatestApartments)
+    case FindLatestApartments(sortingOptions) => sender ! FindLatestApartmentsResult(findLatestApartments(sortingOptions))
     case FindApartment(id) => sender ! FindApartmentResult(Option(jedis.get(id)))
     case StoreApartments(apartments) => {
 

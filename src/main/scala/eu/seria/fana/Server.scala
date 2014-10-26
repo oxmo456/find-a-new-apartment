@@ -3,10 +3,16 @@ package eu.seria.fana
 import unfiltered.netty.{ServerErrorResponse, future}
 import scala.concurrent.{Future, ExecutionContext}
 import unfiltered.netty.future.Plan.Intent
-import unfiltered.request.{Seg, Path, GET}
+import unfiltered.request._
 import unfiltered.response.ResponseString
 import eu.seria.utils.ApplicationMode._
 import com.typesafe.config.ConfigFactory
+
+object QueryStringParameters {
+
+  val SortBy = "sort-by"
+
+}
 
 @io.netty.channel.ChannelHandler.Sharable
 class Server(mode: Mode) extends future.Plan with ServerErrorResponse {
@@ -44,8 +50,9 @@ class Server(mode: Mode) extends future.Plan with ServerErrorResponse {
         ResponseString(res)
       })
     }
-    case GET(Path("/apartments")) => {
-      findANewApartment.latestApartments().map(res => ResponseString(res))
+    case GET(Path("/apartments") & Params(params)) => {
+      val sortingOption = SortingOption(params.get(QueryStringParameters.SortBy))
+      findANewApartment.latestApartments(sortingOption).map(res => ResponseString(res))
     }
 
   }

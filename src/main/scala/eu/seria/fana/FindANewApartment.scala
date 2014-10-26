@@ -5,6 +5,7 @@ import scala.concurrent.Future
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.duration._
+import eu.seria.fana.SortingOption.SortingOption
 
 class FindANewApartment(config: FanaConfig) {
 
@@ -32,8 +33,8 @@ class FindANewApartment(config: FanaConfig) {
     }
   }
 
-  def latestApartments(): Future[String] = {
-    ask(engine, FindLatestApartments()).mapTo[FindLatestApartmentsResult].map(_.apartments)
+  def latestApartments(sortingOptions: SortingOption): Future[String] = {
+    ask(engine, FindLatestApartments(sortingOptions)).mapTo[FindLatestApartmentsResult].map(_.apartments)
   }
 
 }
