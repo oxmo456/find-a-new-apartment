@@ -21,6 +21,8 @@ case class FanaConfig(conf: Config) {
 
   val apartmentsViewUrl = conf.getString("apartmentsViewUrl")
 
+  val userAgent = conf.getString("userAgent")
+
   object redis {
 
     val host = conf.getString("redis.host")

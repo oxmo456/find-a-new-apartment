@@ -6,13 +6,13 @@ import org.jsoup.Jsoup
 import eu.seria.utils.jsoup._
 
 import collection.JavaConversions._
-import scala.util.Try
+import scala.util.{Success, Failure, Try}
 
 case class ExtractApartment(apartmentLink: String)
 
 case class ApartmentExtracted(apartment: Apartment)
 
-object ApartmentExtractor {
+object ApartmentExtractor extends {
 
   def props(config: FanaConfig) = Props(new ApartmentExtractor(config))
 
@@ -63,7 +63,8 @@ class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
   def apartmentLocation(apartmentCode: Option[String]): Option[ApartmentLocation] = {
     apartmentCode.fold[Option[ApartmentLocation]](None) {
       code => {
-        val apartmentMapPage = scala.io.Source.fromURL(config.baseUrl + config.apartmentMapUrl + code).mkString
+        //TODO refactor document loading
+        val apartmentMapPage = htmlDocument(config.baseUrl + config.apartmentMapUrl + code).getOrElse("").toString
         ExtractLatLng.findAllIn(apartmentMapPage).matchData.foldLeft[Option[ApartmentLocation]](None) {
           (result, regExpMatch) => {
             Option(ApartmentLocation(regExpMatch.group(1).toFloat, regExpMatch.group(2).toFloat))
@@ -73,22 +74,36 @@ class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
     }
   }
 
+  //TODO refactor document loading
+  def htmlDocument(link: String): Try[Document] = Try {
+    val response = Jsoup.connect(link)
+      .userAgent(config.userAgent)
+      .timeout(5000).ignoreHttpErrors(true).followRedirects(true).execute()
+    if (response.statusCode() == 307) {
+      Jsoup.connect(response.header("Location")).userAgent(config.userAgent).timeout(5000).execute().parse()
+    } else {
+      response.parse()
+    }
+  }
 
   override def receive: Receive = {
     case ExtractApartment(apartmentLink) => {
       log.info(s"ExtractApartment(...${apartmentLink.substring(apartmentLink.length - 20)})")
 
-      implicit val htmlDocument = Jsoup.parse(scala.io.Source.fromURL(apartmentLink).mkString)
+      htmlDocument(apartmentLink) match {
+        case Success(document) => sender ! ApartmentExtracted(Apartment(
+          apartmentLink,
+          title(document),
+          description(document),
+          address(document),
+          apartmentLocation(apartmentCode(apartmentLink)),
+          price(document),
+          images(document)
+        ))
+        case Failure(e) => log.error(e, s"Error while loading $apartmentLink")
+      }
 
-      sender ! ApartmentExtracted(Apartment(
-        apartmentLink,
-        title,
-        description,
-        address,
-        apartmentLocation(apartmentCode(apartmentLink)),
-        price,
-        images
-      ))
+
     }
   }
 
