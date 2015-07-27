@@ -19,9 +19,9 @@ WORKDIR /
 
 USER daemon
 
-ADD target/scala-2.10/fana-service_2.10-1.0-one-jar.jar /app.jar
+ADD target/scala-2.10/fana-service.jar /fana-service.jar
 
-ENTRYPOINT [ "java", "-jar", "/app.jar", "prod" ]
+ENTRYPOINT [ "java", "-jar", "/fana-service.jar", "prod" ]
 
 EXPOSE 8080
 

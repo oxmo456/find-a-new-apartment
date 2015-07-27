@@ -1,8 +1,8 @@
-import com.github.retronym.SbtOneJar._
-
 name := "fana-service"
 
 version := "1.0"
+
+organization := "eu.seria"
 
 scalaVersion := "2.10.4"
 
@@ -23,6 +23,12 @@ resolvers ++= Seq(
   "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 )
 
-oneJarSettings
-
 libraryDependencies += "commons-lang" % "commons-lang" % "2.6"
+
+assemblyJarName in assembly := "fana-service.jar"
+
+assemblyMergeStrategy in assembly := {
+  case PathList(path@_*) if path.last == "io.netty.versions.properties" => MergeStrategy.concat
+  case x => val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}

@@ -14,6 +14,7 @@ if [ $? -ne 0 ]; then
 fi
 
 eval "$(docker-machine env $PROJECT_NAME)"
+
 docker run -d -p 6379:6379  redis
 
 export FANA_REDIS_HOST="$(docker-machine ip $PROJECT_NAME)"
