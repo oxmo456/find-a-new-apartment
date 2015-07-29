@@ -11,6 +11,8 @@ object Main {
 
   def main(arguments: Array[String]) {
 
+    println("YA...")
+
     new Server(Try(ApplicationMode.withName(arguments.head)).getOrElse(DEV))
 
   }
