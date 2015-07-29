@@ -1,0 +1,13 @@
+web:
+  build: .
+  environment:
+  - FANA_REDIS_HOST=redis
+  volumes:
+  - ./:/app
+  - ~/.ivy2:/root/.ivy2
+  ports:
+   - "8080:8080"
+  links:
+   - redis
+redis:
+  image: redis
