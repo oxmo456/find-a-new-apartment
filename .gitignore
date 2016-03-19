@@ -3,3 +3,4 @@
 target
 dev.conf
 prod.conf
+.vagrant
