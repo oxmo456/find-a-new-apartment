@@ -26,6 +26,8 @@ object ApartmentExtractor extends {
   val ExtractLatLng = """LatLng\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)""".r
   val ExtractCode = """(?<=/)\d+(?=[?#]|$)""".r
 
+  val NotAvailable = "n/a"
+
 }
 
 class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
@@ -33,11 +35,15 @@ class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
   import ApartmentExtractor._
 
   def description(implicit htmlDocument: Document): String = {
-    htmlDocument.select(MetaDescription).first().content
+    Try {
+      htmlDocument.select(MetaDescription).first().content
+    }.getOrElse(NotAvailable)
   }
 
   def title(implicit htmlDocument: Document): String = {
-    htmlDocument.select(Title).first().text
+    Try {
+      htmlDocument.select(Title).first().text
+    }.getOrElse(NotAvailable)
   }
 
   def price(implicit htmlDocument: Document): Option[Float] = {
@@ -53,7 +59,9 @@ class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
   }
 
   def address(implicit htmlDocument: Document): String = {
-    htmlDocument.select(Address).first().textNodes().head.toString
+    Try {
+      htmlDocument.select(Address).first().textNodes().head.toString
+    }.getOrElse(NotAvailable)
   }
 
   def apartmentCode(apartmentLink: String): Option[String] = {
