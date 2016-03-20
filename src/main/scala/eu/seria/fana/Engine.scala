@@ -68,7 +68,7 @@ class Engine(config: FanaConfig) extends Actor with ActorLogging {
   }
 
   def stopped: Receive = {
-    case Status() => sender ! Status.Started
+    case Status() => sender ! Status.Stopped
     case Start() => {
       log.info("Start()")
       become(started)
