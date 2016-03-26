@@ -47,8 +47,10 @@ class ApartmentExtractor(config: FanaConfig) extends Actor with ActorLogging {
   }
 
   def price(implicit htmlDocument: Document): Option[Float] = {
-    val price = htmlDocument.select(Price).first().textNodes().head.toString
-    Try(ExtractPrice.findAllIn(price).mkString.replace(',', '.').toFloat).toOption
+    Try {
+      val price = htmlDocument.select(Price).first().textNodes().head.toString
+      ExtractPrice.findAllIn(price).mkString.replace(',', '.').toFloat
+    }.toOption
   }
 
 
