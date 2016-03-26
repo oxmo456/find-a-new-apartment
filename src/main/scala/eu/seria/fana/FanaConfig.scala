@@ -11,7 +11,7 @@ case class FanaConfig(conf: Config) {
 
   val baseUrl = conf.getString("baseUrl")
 
-  val apartmentsListingUrl = conf.getString("apartmentsListingUrl")
+  val apartmentsListingUrls: List[String] = conf.getStringList("apartmentsListingUrls").toList
 
   val apartmentMapUrl = conf.getString("apartmentMapUrl")
 
