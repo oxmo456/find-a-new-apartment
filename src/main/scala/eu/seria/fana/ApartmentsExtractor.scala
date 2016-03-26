@@ -21,6 +21,7 @@ object ApartmentsExtractor {
 class ApartmentsExtractor(config: FanaConfig) extends Actor with ActorLogging {
 
   import context.dispatcher
+  import scala.language.postfixOps
 
   implicit val timeout = Timeout(30 seconds)
 

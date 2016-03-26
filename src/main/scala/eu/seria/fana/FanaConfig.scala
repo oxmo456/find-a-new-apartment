@@ -7,6 +7,8 @@ import scala.collection.JavaConversions._
 
 case class FanaConfig(conf: Config) {
 
+  import scala.language.postfixOps
+
   val baseUrl = conf.getString("baseUrl")
 
   val apartmentsListingUrl = conf.getString("apartmentsListingUrl")

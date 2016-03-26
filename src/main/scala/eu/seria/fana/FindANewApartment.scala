@@ -9,6 +9,8 @@ import eu.seria.fana.SortingOption.SortingOption
 
 class FindANewApartment(config: FanaConfig) {
 
+  import scala.language.postfixOps
+
   implicit val timeout = Timeout(5 seconds)
 
   val system = ActorSystem("fana")
